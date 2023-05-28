@@ -6,54 +6,66 @@ const getCurrencyOptions = async () => {
     return json.symbols;
 }
 
-console.log(getCurrencyOptions());
+//console.log(getCurrencyOptions());
 
-const getCurrencyRate = async (fromCurrency, toCurrency)=>{
-    const currencyConvertUrl = new URL('https://api.exchangerate.host/convert?from=USD&to=EUR');
+getCurrencyOptions().then(console.log);
 
-    currencyConvertUrl.searchParams.append('from', fromCurrency);
-    currencyConvertUrl.searchParams.append('to', toCurrency);
+ const getCurrencyRate = async (fromCurrency, toCurrency)=>{
+    const currencyConvertUrl = new URL('https://api.exchangerate.host/convert');
 
-    const  response = await fetch(currencyConvertUrl);
-    const json = await response.json();
+     currencyConvertUrl.searchParams.append('from', fromCurrency);
+     currencyConvertUrl.searchParams.append('to', toCurrency);
 
-    return json.result;
+     const  response = await fetch(currencyConvertUrl);
+     const json = await response.json();
+     return json.result;
+
+ };
+
+
+//  const appendOptionToSelect = (SelectElement, optionItem) => {
+//      const optionElement = document.createElement('option');
+//      optionElement.value = optionItem.code;
+//      optionElement.textContent = optionItem.description;
+
+//     SelectElement.appendChild(optionElement);
+// };
+
+const appendOptionToSelect = (selectElement, optionItem) => {
+    const optionElement = document.createElement('option');
+    optionElement.value = optionItem.code;
+    optionElement.textContent = optionItem.description;
+    selectElement.appendChild(optionElement);
 
 };
 
-
-const appendOptionToSelect = (SelectElement, optionItem)=>{
-    const optionElement = document.createElement('option');
-    optionElement.value= optionItem.code;
-    optionElement.textContent = optionItem.description;
-
-    SelectElement.appendChild(optionElement);
-}
-
-const populateSelectElement = (SelectElement, optionList) => {
+ const populateSelectElement = (SelectElement, optionList) => {
     optionList.forEach(optionItem => {
         appendOptionToSelect(SelectElement, optionItem);
-    })
-}
+     })
+ };
 
-const setupCurrencies = async ()=> {
-    const fromCurrencyElem = document.getElementById('fromCurrency');
-    const toCurrencyElem = document.getElementById('toCurrency');
+ const setupCurrencies = async ()=> {
+     const fromCurrencyElem = document.getElementById('fromCurrency');
+     const toCurrencyElem = document.getElementById('toCurrency');
 
-    const currencyOptions = await getCurrencyOptions();
+     const currencyOptions = await getCurrencyOptions();
 
-    const currencies = Object.keys(currencyOptions).map(
-        currencyKey => currencyOptions[currencyKey]
-    );
+     const currencies = Object.keys(currencyOptions).map(
+         currencyKey => currencyOptions[currencyKey]
+     );
+     //console.log(currencies);
 
-    populateSelectElement(fromCurrencyElem, currencies);
-    populateSelectElement(toCurrencyElem, currencies);
-};
+     populateSelectElement(fromCurrencyElem, currencies);
+     populateSelectElement(toCurrencyElem, currencies);
+ };
 
+    //setupCurrencies();
+   
 const setupEventListener = () => {
     const formElement = document.getElementById('convertForm');
 
-    frameElement.addEventListener('submit', async event =>{
+    formElement.addEventListener('submit', async event =>{
         event.preventDefault();
 
         const fromCurrency = document.getElementById('fromCurrency');
@@ -61,10 +73,18 @@ const setupEventListener = () => {
         const amount = document.getElementById('amount');
         const convertResultElem = document.getElementById('convertResult');
 
-        const rate = await getCurrencyRate(fromCurrency.value , toCurrency.value);
+        try{
+            const rate = await getCurrencyRate(
+            fromCurrency.value , 
+            toCurrency.value);
+
         const amountValue = Number(amount.value);
         const ConverionResult = Number(amountValue * rate).toFixed(2);
         convertResultElem.textContent = `${amountValue} ${fromCurrency.value} = ${ConverionResult} ${toCurrency.value}`
+     }catch(error){
+        convertResultElem.textContent = `There was an error getting the conversion rate [${error.message}]`;
+        convertResultElem.classList.add('error');
+     }
 
 
     });
@@ -72,3 +92,4 @@ const setupEventListener = () => {
 
 
 setupCurrencies();
+setupEventListener();
